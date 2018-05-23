@@ -80,6 +80,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
+
+
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
         ImageView messageImageView;
@@ -117,6 +119,8 @@ public class MainActivity extends AppCompatActivity
     private ImageView mAddMessageImageView;
 
     // Firebase instance variables
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebasUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,6 +181,23 @@ public class MainActivity extends AppCompatActivity
                 // Select image for image message on click.
             }
         });
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebasUser = mFirebaseAuth.getCurrentUser();
+
+        if(mFirebasUser == null){
+            //Sin login
+            startActivity(new Intent(this,SignInActivity.class));
+            finish();
+            return;
+        }
+        else
+        {
+            mUsername = mFirebasUser.getDisplayName();
+            if(mFirebasUser.getPhotoUrl() != null){
+                mPhotoUrl = mFirebasUser.getPhotoUrl().toString();
+            }
+        }
     }
 
     @Override
@@ -210,7 +231,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        switch (item.getItemId()){
+            case R.id.sign_out_menu:
+                mFirebaseAuth.signOut();
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+                mUsername = ANONYMOUS;
+                startActivity(new Intent(this,SignInActivity.class));
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
     @Override
